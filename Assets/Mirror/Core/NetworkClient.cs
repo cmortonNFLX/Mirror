@@ -1614,25 +1614,27 @@ namespace Mirror
 
                 identity.OnStopClient();
 
-                // custom unspawn handler for this prefab? (for prefab pools etc.)
-                if (InvokeUnSpawnHandler(identity.assetId, identity.gameObject))
-                {
-                    // reset object after user's handler
-                    identity.Reset();
-                }
-                // otherwise fall back to default Destroy
-                else if (identity.sceneId == 0)
-                {
-                    // don't call reset before destroy so that values are still set in OnDestroy
-                    GameObject.Destroy(identity.gameObject);
-                }
                 // scene object.. disable it in scene instead of destroying
-                else
+                // Do this before checking for unspawn handler in order to allow the same prefab asset 
+                // to be placed in a scene or spawned with custom functions
+                if (sceneId != 0)
                 {
                     identity.gameObject.SetActive(false);
                     spawnableObjects[identity.sceneId] = identity;
                     // reset for scene objects
                     identity.Reset();
+                }
+                // custom unspawn handler for this prefab? (for prefab pools etc.)
+                else if (InvokeUnSpawnHandler(identity.assetId, identity.gameObject))
+                {
+                    // reset object after user's handler
+                    identity.Reset();
+                }
+                // otherwise fall back to default Destroy
+                else
+                {
+                    // don't call reset before destroy so that values are still set in OnDestroy
+                    GameObject.Destroy(identity.gameObject);
                 }
 
                 // remove from dictionary no matter how it is unspawned
